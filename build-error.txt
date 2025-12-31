@@ -1,0 +1,94 @@
+﻿
+> expense-tracker@0.1.0 build
+> next build
+
+Ôû▓ Next.js 16.1.1 (Turbopack)
+- Environments: .env
+
+node.exe : ÔÜá The 
+"middleware" file 
+convention is deprecated. 
+Please use "proxy" instead. 
+Learn more: https://nextjs.o
+rg/docs/messages/middleware-
+to-proxy
+At line:1 char:1
++ & "C:\Program 
+Files\nodejs/node.exe" 
+"C:\Program 
+Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
+    + CategoryInfo          
+    : NotSpecified: (ÔÜá T  
+  he "middle...leware-to-   
+ proxy:String) [], Remot    
+eException
+    + FullyQualifiedErrorId 
+    : NativeCommandError
+ 
+  Creating an optimized production build ...
+Ô£ô Compiled successfully in 14.3s
+  Running TypeScript ...
+Failed to compile.
+
+./src/app/(dashboard)/page.t
+sx:184:37
+Type error: Type '(value: 
+number) => [string, 
+"Pengeluaran"]' is not 
+assignable to type 
+'Formatter<number, 
+"Pengeluaran">'.
+  Types of parameters 
+'value' and 'value' are 
+incompatible.
+    Type 'number | 
+undefined' is not 
+assignable to type 'number'.
+      Type 'undefined' is 
+not assignable to type 
+'number'.
+
+[0m [90m 182 |[39m       
+                            
+      
+borderRadius[33m:[39m 
+[35m8[39m[33m,[39m
+ [90m 183 |[39m           
+                          }}
+[31m[1m>[22m[39m[90m 
+184 |[39m                  
+                   formatter
+[33m=[39m{(value[33m:[39
+m number) [33m=>[39m [form
+atCurrency(value)[33m,[39m
+ [32m"Pengeluaran"[39m]}
+ [90m     |[39m           
+                          
+[31m[1m^[22m[39m
+ [90m 185 |[39m           
+                          la
+belFormatter[33m=[39m{(lab
+el[33m:[39m string 
+[33m|[39m number) 
+[33m=>[39m [32m`Tanggal 
+${label}`[39m}
+ [90m 186 |[39m           
+                      
+[33m/[39m[33m>[39m
+ [90m 187 |[39m           
+                      
+[33m<[39m[33mBar[39m dat
+aKey[33m=[39m[32m"amount"
+[39m fill[33m=[39m[32m"#
+6366f1"[39m radius[33m=[3
+9m{[[35m4[39m[33m,[39m 
+[35m4[39m[33m,[39m 
+[35m0[39m[33m,[39m 
+[35m0[39m]} 
+[33m/[39m[33m>[39m[0m
+Next.js build worker exited 
+with code: 1 and signal: 
+null
