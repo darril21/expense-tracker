@@ -14,6 +14,7 @@ model User {
   name       String?
   categories Category[]
   expenses   Expense[]
+  incomes    Income[]
   createdAt  DateTime   @default(now())
   updatedAt  DateTime   @updatedAt
 }
@@ -46,4 +47,24 @@ model Expense {
 
   @@index([userId, date])
   @@index([categoryId])
+}
+
+model Income {
+  id        String     @id @default(cuid())
+  amount    Float
+  type      IncomeType
+  date      DateTime
+  note      String?
+  userId    String
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@index([userId, date])
+}
+
+enum IncomeType {
+  SALARY
+  REIMBURSEMENT
+  OTHER
 }

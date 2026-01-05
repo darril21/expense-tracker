@@ -53,6 +53,26 @@ export async function GET(request: NextRequest) {
             },
         });
 
+        // Get current month incomes
+        const currentMonthIncomes = await prisma.income.findMany({
+            where: {
+                userId: session.user.id,
+                date: {
+                    gte: startDate,
+                    lte: endDate,
+                },
+            },
+            orderBy: {
+                date: "desc",
+            },
+        });
+
+        // Calculate income total
+        const totalIncome = currentMonthIncomes.reduce(
+            (sum, inc) => sum + inc.amount,
+            0
+        );
+
         // Calculate totals
         const currentTotal = currentMonthExpenses.reduce(
             (sum, exp) => sum + exp.amount,
@@ -124,6 +144,9 @@ export async function GET(request: NextRequest) {
             categoryBreakdown: sortedCategories,
             dailyData,
             recentTransactions,
+            totalIncome,
+            balance: totalIncome - currentTotal,
+            recentIncomes: currentMonthIncomes.slice(0, 5),
             month,
             year,
         });

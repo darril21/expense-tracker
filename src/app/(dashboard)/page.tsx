@@ -25,6 +25,14 @@ interface CategoryBreakdown {
     count: number;
 }
 
+interface Income {
+    id: string;
+    amount: number;
+    type: "SALARY" | "REIMBURSEMENT" | "OTHER";
+    date: string;
+    note: string | null;
+}
+
 interface DashboardStats {
     currentTotal: number;
     previousTotal: number;
@@ -42,14 +50,31 @@ interface DashboardStats {
             icon: string | null;
         };
     }[];
+    totalIncome: number;
+    balance: number;
+    recentIncomes: Income[];
     month: number;
     year: number;
 }
+
+const INCOME_TYPES = [
+    { value: "SALARY", label: "💰 Gaji", color: "#22c55e" },
+    { value: "REIMBURSEMENT", label: "⛽ Reimburse Bensin", color: "#3b82f6" },
+    { value: "OTHER", label: "📦 Lainnya", color: "#8b5cf6" },
+];
 
 export default function DashboardPage() {
     const [stats, setStats] = useState<DashboardStats | null>(null);
     const [loading, setLoading] = useState(true);
     const [currentDate, setCurrentDate] = useState(new Date());
+    const [showIncomeModal, setShowIncomeModal] = useState(false);
+    const [incomeForm, setIncomeForm] = useState({
+        amount: "",
+        type: "SALARY",
+        date: new Date().toISOString().split("T")[0],
+        note: "",
+    });
+    const [submitting, setSubmitting] = useState(false);
 
     const fetchStats = useCallback(async () => {
         setLoading(true);
@@ -98,6 +123,40 @@ export default function DashboardPage() {
         setCurrentDate(newDate);
     };
 
+    const handleIncomeSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setSubmitting(true);
+        try {
+            const response = await fetch("/api/incomes", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(incomeForm),
+            });
+            if (response.ok) {
+                setShowIncomeModal(false);
+                setIncomeForm({
+                    amount: "",
+                    type: "SALARY",
+                    date: new Date().toISOString().split("T")[0],
+                    note: "",
+                });
+                fetchStats();
+            }
+        } catch (error) {
+            console.error("Error adding income:", error);
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    const getIncomeTypeLabel = (type: string) => {
+        return INCOME_TYPES.find((t) => t.value === type)?.label || type;
+    };
+
+    const getIncomeTypeColor = (type: string) => {
+        return INCOME_TYPES.find((t) => t.value === type)?.color || "#6366f1";
+    };
+
     if (loading) {
         return (
             <div className="loading-container">
@@ -111,14 +170,50 @@ export default function DashboardPage() {
             {/* Header with Month Picker */}
             <div className="page-header">
                 <h1 className="page-title">Dashboard</h1>
-                <div className="month-picker">
-                    <button className="month-picker-btn" onClick={() => navigateMonth(-1)}>
-                        ←
+                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                    <button
+                        className="btn btn-primary"
+                        onClick={() => setShowIncomeModal(true)}
+                    >
+                        + Pemasukan
                     </button>
-                    <span className="month-picker-display">{getMonthName(currentDate)}</span>
-                    <button className="month-picker-btn" onClick={() => navigateMonth(1)}>
-                        →
-                    </button>
+                    <div className="month-picker">
+                        <button className="month-picker-btn" onClick={() => navigateMonth(-1)}>
+                            ←
+                        </button>
+                        <span className="month-picker-display">{getMonthName(currentDate)}</span>
+                        <button className="month-picker-btn" onClick={() => navigateMonth(1)}>
+                            →
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {/* Balance Card - Full Width */}
+            <div className="card" style={{ marginBottom: 20, background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
+                    <div>
+                        <div style={{ color: "rgba(255,255,255,0.8)", fontSize: "0.875rem", marginBottom: 4 }}>
+                            Saldo Bulan Ini
+                        </div>
+                        <div style={{ fontSize: "2rem", fontWeight: 700, color: "#fff" }}>
+                            {formatCurrency(stats?.balance || 0)}
+                        </div>
+                    </div>
+                    <div style={{ display: "flex", gap: 24 }}>
+                        <div style={{ textAlign: "right" }}>
+                            <div style={{ color: "rgba(255,255,255,0.7)", fontSize: "0.75rem" }}>Pemasukan</div>
+                            <div style={{ color: "#22c55e", fontWeight: 600 }}>
+                                +{formatCurrency(stats?.totalIncome || 0)}
+                            </div>
+                        </div>
+                        <div style={{ textAlign: "right" }}>
+                            <div style={{ color: "rgba(255,255,255,0.7)", fontSize: "0.75rem" }}>Pengeluaran</div>
+                            <div style={{ color: "#ef4444", fontWeight: 600 }}>
+                                -{formatCurrency(stats?.currentTotal || 0)}
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -239,6 +334,48 @@ export default function DashboardPage() {
                 </div>
             </div>
 
+            {/* Recent Incomes */}
+            {stats?.recentIncomes && stats.recentIncomes.length > 0 && (
+                <div className="card" style={{ marginBottom: 20 }}>
+                    <div className="card-header">
+                        <h2 className="card-title">💰 Pemasukan Terbaru</h2>
+                    </div>
+                    <div className="table-container">
+                        <table className="table">
+                            <thead>
+                                <tr>
+                                    <th>Tanggal</th>
+                                    <th>Tipe</th>
+                                    <th>Catatan</th>
+                                    <th style={{ textAlign: "right" }}>Nominal</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {stats.recentIncomes.map((income) => (
+                                    <tr key={income.id}>
+                                        <td>{formatDate(income.date)}</td>
+                                        <td>
+                                            <span
+                                                className="category-badge"
+                                                style={{ backgroundColor: `${getIncomeTypeColor(income.type)}20` }}
+                                            >
+                                                {getIncomeTypeLabel(income.type)}
+                                            </span>
+                                        </td>
+                                        <td style={{ color: "var(--muted)" }}>{income.note || "-"}</td>
+                                        <td style={{ textAlign: "right" }}>
+                                            <span style={{ color: "#22c55e", fontWeight: 600 }}>
+                                                +{formatCurrency(income.amount)}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            )}
+
             {/* Recent Transactions */}
             <div className="card">
                 <div className="card-header">
@@ -284,6 +421,84 @@ export default function DashboardPage() {
                     </div>
                 )}
             </div>
+
+            {/* Income Modal */}
+            {showIncomeModal && (
+                <div className="modal-overlay" onClick={() => setShowIncomeModal(false)}>
+                    <div className="modal" onClick={(e) => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <h2 className="modal-title">Tambah Pemasukan</h2>
+                            <button className="modal-close" onClick={() => setShowIncomeModal(false)}>
+                                ×
+                            </button>
+                        </div>
+                        <form onSubmit={handleIncomeSubmit}>
+                            <div className="form-group">
+                                <label className="form-label">Tipe Pemasukan</label>
+                                <select
+                                    className="form-input"
+                                    value={incomeForm.type}
+                                    onChange={(e) => setIncomeForm({ ...incomeForm, type: e.target.value })}
+                                    required
+                                >
+                                    {INCOME_TYPES.map((type) => (
+                                        <option key={type.value} value={type.value}>
+                                            {type.label}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className="form-group">
+                                <label className="form-label">Nominal</label>
+                                <input
+                                    type="number"
+                                    className="form-input"
+                                    placeholder="Contoh: 5000000"
+                                    value={incomeForm.amount}
+                                    onChange={(e) => setIncomeForm({ ...incomeForm, amount: e.target.value })}
+                                    required
+                                />
+                            </div>
+
+                            <div className="form-group">
+                                <label className="form-label">Tanggal</label>
+                                <input
+                                    type="date"
+                                    className="form-input"
+                                    value={incomeForm.date}
+                                    onChange={(e) => setIncomeForm({ ...incomeForm, date: e.target.value })}
+                                    required
+                                />
+                            </div>
+
+                            <div className="form-group">
+                                <label className="form-label">Catatan (Opsional)</label>
+                                <input
+                                    type="text"
+                                    className="form-input"
+                                    placeholder="Contoh: Gaji bulan Januari"
+                                    value={incomeForm.note}
+                                    onChange={(e) => setIncomeForm({ ...incomeForm, note: e.target.value })}
+                                />
+                            </div>
+
+                            <div className="modal-actions">
+                                <button
+                                    type="button"
+                                    className="btn btn-secondary"
+                                    onClick={() => setShowIncomeModal(false)}
+                                >
+                                    Batal
+                                </button>
+                                <button type="submit" className="btn btn-primary" disabled={submitting}>
+                                    {submitting ? <span className="spinner" style={{ width: 20, height: 20 }}></span> : "Simpan"}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
