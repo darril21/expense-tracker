@@ -119,7 +119,7 @@ export default function CategoriesPage() {
     }
 
     return (
-        <div>
+        <div className="page-content">
             <div className="page-header">
                 <h1 className="page-title">Kategori</h1>
                 <button className="btn btn-primary" onClick={openAddModal}>

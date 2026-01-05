@@ -155,7 +155,7 @@ export default function ExpensesPage() {
     }
 
     return (
-        <div>
+        <div className="page-content">
             <div className="page-header">
                 <div>
                     <h1 className="page-title">Pengeluaran</h1>
@@ -163,7 +163,7 @@ export default function ExpensesPage() {
                         Total: {formatCurrency(totalMonth)}
                     </p>
                 </div>
-                <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
+                <div className="header-actions">
                     <div className="month-picker">
                         <button className="month-picker-btn" onClick={() => navigateMonth(-1)}>
                             ←

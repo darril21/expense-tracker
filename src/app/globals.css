@@ -223,6 +223,8 @@ body {
   flex: 1;
   margin-left: 280px;
   padding: 32px;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 /* Stats Grid */
@@ -283,6 +285,8 @@ body {
 /* Table */
 .table-container {
   overflow-x: auto;
+  max-width: 100%;
+  -webkit-overflow-scrolling: touch;
 }
 
 .table {
@@ -591,6 +595,77 @@ body {
   box-shadow: 0 0 0 2px var(--primary);
 }
 
+/* Header Actions */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Balance Card */
+.balance-card {
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.balance-main {
+  min-width: 0;
+  flex: 1;
+}
+
+.balance-label {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.875rem;
+  margin-bottom: 4px;
+}
+
+.balance-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #fff;
+  word-break: break-word;
+}
+
+.balance-details {
+  display: flex;
+  gap: 24px;
+}
+
+.balance-item {
+  text-align: right;
+}
+
+.balance-item-label {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.75rem;
+}
+
+.balance-item-value {
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.balance-item-value.income {
+  color: #22c55e;
+}
+
+.balance-item-value.expense {
+  color: #ef4444;
+}
+
+/* Page content wrapper */
+.page-content {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
 /* Responsive - Mobile First */
 @media (max-width: 768px) {
   .sidebar {
@@ -653,6 +728,48 @@ body {
     width: 100%;
   }
 
+  /* Header actions mobile */
+  .header-actions {
+    flex-direction: column;
+    width: 100%;
+    gap: 10px;
+  }
+
+  .header-actions .btn {
+    width: 100%;
+  }
+
+  /* Balance card mobile */
+  .balance-card {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 20px;
+    gap: 16px;
+    border-radius: 14px;
+  }
+
+  .balance-main {
+    text-align: center;
+  }
+
+  .balance-value {
+    font-size: 1.75rem;
+  }
+
+  .balance-details {
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .balance-item {
+    flex: 1;
+    text-align: center;
+  }
+
+  .balance-item-value {
+    font-size: 0.95rem;
+  }
+
   .page-title {
     font-size: 1.5rem;
   }
@@ -703,6 +820,8 @@ body {
     padding: 16px;
     border-radius: 12px;
     margin-bottom: 16px;
+    overflow-x: hidden;
+    max-width: 100%;
   }
 
   .card-header {

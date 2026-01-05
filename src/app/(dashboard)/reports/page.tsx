@@ -94,7 +94,7 @@ export default function ReportsPage() {
     }
 
     return (
-        <div>
+        <div className="page-content">
             <div className="page-header">
                 <h1 className="page-title">Laporan Bulanan</h1>
                 <div className="month-picker">

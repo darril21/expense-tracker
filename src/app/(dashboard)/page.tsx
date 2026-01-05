@@ -166,11 +166,11 @@ export default function DashboardPage() {
     }
 
     return (
-        <div>
+        <div className="page-content">
             {/* Header with Month Picker */}
             <div className="page-header">
                 <h1 className="page-title">Dashboard</h1>
-                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <div className="header-actions">
                     <button
                         className="btn btn-primary"
                         onClick={() => setShowIncomeModal(true)}
@@ -190,29 +190,19 @@ export default function DashboardPage() {
             </div>
 
             {/* Balance Card - Full Width */}
-            <div className="card" style={{ marginBottom: 20, background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
-                    <div>
-                        <div style={{ color: "rgba(255,255,255,0.8)", fontSize: "0.875rem", marginBottom: 4 }}>
-                            Saldo Bulan Ini
-                        </div>
-                        <div style={{ fontSize: "2rem", fontWeight: 700, color: "#fff" }}>
-                            {formatCurrency(stats?.balance || 0)}
-                        </div>
+            <div className="balance-card">
+                <div className="balance-main">
+                    <div className="balance-label">Saldo Bulan Ini</div>
+                    <div className="balance-value">{formatCurrency(stats?.balance || 0)}</div>
+                </div>
+                <div className="balance-details">
+                    <div className="balance-item">
+                        <div className="balance-item-label">Pemasukan</div>
+                        <div className="balance-item-value income">+{formatCurrency(stats?.totalIncome || 0)}</div>
                     </div>
-                    <div style={{ display: "flex", gap: 24 }}>
-                        <div style={{ textAlign: "right" }}>
-                            <div style={{ color: "rgba(255,255,255,0.7)", fontSize: "0.75rem" }}>Pemasukan</div>
-                            <div style={{ color: "#22c55e", fontWeight: 600 }}>
-                                +{formatCurrency(stats?.totalIncome || 0)}
-                            </div>
-                        </div>
-                        <div style={{ textAlign: "right" }}>
-                            <div style={{ color: "rgba(255,255,255,0.7)", fontSize: "0.75rem" }}>Pengeluaran</div>
-                            <div style={{ color: "#ef4444", fontWeight: 600 }}>
-                                -{formatCurrency(stats?.currentTotal || 0)}
-                            </div>
-                        </div>
+                    <div className="balance-item">
+                        <div className="balance-item-label">Pengeluaran</div>
+                        <div className="balance-item-value expense">-{formatCurrency(stats?.currentTotal || 0)}</div>
                     </div>
                 </div>
             </div>
