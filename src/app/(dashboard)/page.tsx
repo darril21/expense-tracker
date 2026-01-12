@@ -75,6 +75,7 @@ export default function DashboardPage() {
         note: "",
     });
     const [submitting, setSubmitting] = useState(false);
+    const [editingIncome, setEditingIncome] = useState<Income | null>(null);
 
     const fetchStats = useCallback(async () => {
         setLoading(true);
@@ -127,13 +128,17 @@ export default function DashboardPage() {
         e.preventDefault();
         setSubmitting(true);
         try {
-            const response = await fetch("/api/incomes", {
-                method: "POST",
+            const url = editingIncome ? `/api/incomes/${editingIncome.id}` : "/api/incomes";
+            const method = editingIncome ? "PUT" : "POST";
+
+            const response = await fetch(url, {
+                method,
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(incomeForm),
             });
             if (response.ok) {
                 setShowIncomeModal(false);
+                setEditingIncome(null);
                 setIncomeForm({
                     amount: "",
                     type: "SALARY",
@@ -143,9 +148,32 @@ export default function DashboardPage() {
                 fetchStats();
             }
         } catch (error) {
-            console.error("Error adding income:", error);
+            console.error("Error saving income:", error);
         } finally {
             setSubmitting(false);
+        }
+    };
+
+    const openEditIncomeModal = (income: Income) => {
+        setEditingIncome(income);
+        setIncomeForm({
+            amount: income.amount.toString(),
+            type: income.type,
+            date: income.date.split("T")[0],
+            note: income.note || "",
+        });
+        setShowIncomeModal(true);
+    };
+
+    const handleDeleteIncome = async (id: string) => {
+        if (!confirm("Yakin ingin menghapus pemasukan ini?")) return;
+        try {
+            const response = await fetch(`/api/incomes/${id}`, { method: "DELETE" });
+            if (response.ok) {
+                fetchStats();
+            }
+        } catch (error) {
+            console.error("Error deleting income:", error);
         }
     };
 
@@ -338,6 +366,7 @@ export default function DashboardPage() {
                                     <th>Tipe</th>
                                     <th>Catatan</th>
                                     <th style={{ textAlign: "right" }}>Nominal</th>
+                                    <th style={{ textAlign: "center" }}>Aksi</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -357,6 +386,22 @@ export default function DashboardPage() {
                                             <span style={{ color: "#22c55e", fontWeight: 600 }}>
                                                 +{formatCurrency(income.amount)}
                                             </span>
+                                        </td>
+                                        <td>
+                                            <div className="actions" style={{ justifyContent: "center" }}>
+                                                <button
+                                                    className="btn btn-icon btn-secondary"
+                                                    onClick={() => openEditIncomeModal(income)}
+                                                >
+                                                    ✏️
+                                                </button>
+                                                <button
+                                                    className="btn btn-icon btn-secondary"
+                                                    onClick={() => handleDeleteIncome(income.id)}
+                                                >
+                                                    🗑️
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}
@@ -414,11 +459,11 @@ export default function DashboardPage() {
 
             {/* Income Modal */}
             {showIncomeModal && (
-                <div className="modal-overlay" onClick={() => setShowIncomeModal(false)}>
+                <div className="modal-overlay" onClick={() => { setShowIncomeModal(false); setEditingIncome(null); }}>
                     <div className="modal" onClick={(e) => e.stopPropagation()}>
                         <div className="modal-header">
-                            <h2 className="modal-title">Tambah Pemasukan</h2>
-                            <button className="modal-close" onClick={() => setShowIncomeModal(false)}>
+                            <h2 className="modal-title">{editingIncome ? "Edit Pemasukan" : "Tambah Pemasukan"}</h2>
+                            <button className="modal-close" onClick={() => { setShowIncomeModal(false); setEditingIncome(null); }}>
                                 ×
                             </button>
                         </div>
