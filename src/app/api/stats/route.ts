@@ -14,13 +14,35 @@ export async function GET(request: NextRequest) {
         const month = parseInt(searchParams.get("month") || String(new Date().getMonth() + 1));
         const year = parseInt(searchParams.get("year") || String(new Date().getFullYear()));
 
-        // Current month date range
-        const startDate = new Date(year, month - 1, 1);
-        const endDate = new Date(year, month, 0, 23, 59, 59);
+        // Get user's billing cycle start day
+        const user = await prisma.user.findUnique({
+            where: { id: session.user.id },
+            select: { billingCycleStart: true },
+        });
+        const cycleStart = user?.billingCycleStart || 1;
 
-        // Previous month date range
-        const prevStartDate = new Date(year, month - 2, 1);
-        const prevEndDate = new Date(year, month - 1, 0, 23, 59, 59);
+        // Calculate date range based on billing cycle
+        // If cycleStart = 25, "January 2026" = Dec 25, 2025 - Jan 24, 2026
+        let startDate: Date;
+        let endDate: Date;
+        let prevStartDate: Date;
+        let prevEndDate: Date;
+
+        if (cycleStart === 1) {
+            // Standard calendar month
+            startDate = new Date(year, month - 1, 1);
+            endDate = new Date(year, month, 0, 23, 59, 59);
+            prevStartDate = new Date(year, month - 2, 1);
+            prevEndDate = new Date(year, month - 1, 0, 23, 59, 59);
+        } else {
+            // Custom billing cycle
+            // Start: (cycleStart) of previous month
+            // End: (cycleStart - 1) of current month
+            startDate = new Date(year, month - 2, cycleStart);
+            endDate = new Date(year, month - 1, cycleStart - 1, 23, 59, 59);
+            prevStartDate = new Date(year, month - 3, cycleStart);
+            prevEndDate = new Date(year, month - 2, cycleStart - 1, 23, 59, 59);
+        }
 
         // Get current month expenses
         const currentMonthExpenses = await prisma.expense.findMany({

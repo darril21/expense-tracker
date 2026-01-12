@@ -14,8 +14,23 @@ export async function GET(request: NextRequest) {
         const month = parseInt(searchParams.get("month") || String(new Date().getMonth() + 1));
         const year = parseInt(searchParams.get("year") || String(new Date().getFullYear()));
 
-        const startDate = new Date(year, month - 1, 1);
-        const endDate = new Date(year, month, 0, 23, 59, 59);
+        // Get user's billing cycle start day
+        const user = await prisma.user.findUnique({
+            where: { id: session.user.id },
+            select: { billingCycleStart: true },
+        });
+        const cycleStart = user?.billingCycleStart || 1;
+
+        let startDate: Date;
+        let endDate: Date;
+
+        if (cycleStart === 1) {
+            startDate = new Date(year, month - 1, 1);
+            endDate = new Date(year, month, 0, 23, 59, 59);
+        } else {
+            startDate = new Date(year, month - 2, cycleStart);
+            endDate = new Date(year, month - 1, cycleStart - 1, 23, 59, 59);
+        }
 
         const incomes = await prisma.income.findMany({
             where: {

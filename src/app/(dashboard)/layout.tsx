@@ -42,6 +42,7 @@ export default function DashboardLayout({
         { href: "/expenses", icon: "💸", label: "Pengeluaran" },
         { href: "/categories", icon: "📁", label: "Kategori" },
         { href: "/reports", icon: "📈", label: "Laporan" },
+        { href: "/settings", icon: "⚙️", label: "Pengaturan" },
     ];
 
     return (
