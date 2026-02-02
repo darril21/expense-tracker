@@ -136,25 +136,81 @@ export async function GET(request: NextRequest) {
             (a, b) => b.total - a.total
         );
 
-        // Get daily totals for chart
-        const dailyTotals = currentMonthExpenses.reduce(
-            (acc, exp) => {
-                const day = exp.date.getDate();
-                if (!acc[day]) {
-                    acc[day] = 0;
-                }
-                acc[day] += exp.amount;
-                return acc;
-            },
-            {} as Record<number, number>
-        );
+        // Get daily totals for chart - handle split months for custom billing cycle
+        let dailyData: { day: number; amount: number }[] = [];
+        let dailyDataMonth1: { day: number; amount: number }[] | null = null;
+        let dailyDataMonth2: { day: number; amount: number }[] | null = null;
+        let month1Label = "";
+        let month2Label = "";
 
-        // Fill in all days of the month
-        const daysInMonth = new Date(year, month, 0).getDate();
-        const dailyData = Array.from({ length: daysInMonth }, (_, i) => ({
-            day: i + 1,
-            amount: dailyTotals[i + 1] || 0,
-        }));
+        if (cycleStart === 1) {
+            // Standard calendar month - single chart
+            const dailyTotals = currentMonthExpenses.reduce(
+                (acc, exp) => {
+                    const day = exp.date.getDate();
+                    if (!acc[day]) acc[day] = 0;
+                    acc[day] += exp.amount;
+                    return acc;
+                },
+                {} as Record<number, number>
+            );
+            const daysInMonth = new Date(year, month, 0).getDate();
+            dailyData = Array.from({ length: daysInMonth }, (_, i) => ({
+                day: i + 1,
+                amount: dailyTotals[i + 1] || 0,
+            }));
+        } else {
+            // Custom billing cycle - split into two charts
+            // Month 1: Previous month (cycleStart to end of month)
+            // Month 2: Current month (1 to cycleStart-1)
+            const prevMonth = month - 2;
+            const currMonth = month - 1;
+            const prevMonthYear = prevMonth < 0 ? year - 1 : year;
+            const adjustedPrevMonth = prevMonth < 0 ? 12 + prevMonth : prevMonth;
+
+            const daysInPrevMonth = new Date(prevMonthYear, adjustedPrevMonth + 1, 0).getDate();
+            const daysInCurrMonth = cycleStart - 1;
+
+            // Create month labels
+            const prevMonthName = new Date(prevMonthYear, adjustedPrevMonth, 1).toLocaleDateString("id-ID", { month: "short" });
+            const currMonthName = new Date(year, currMonth, 1).toLocaleDateString("id-ID", { month: "short" });
+            month1Label = `${prevMonthName} (${cycleStart}-${daysInPrevMonth})`;
+            month2Label = `${currMonthName} (1-${daysInCurrMonth})`;
+
+            // Group expenses by which month they belong to
+            const month1Totals: Record<number, number> = {};
+            const month2Totals: Record<number, number> = {};
+
+            currentMonthExpenses.forEach((exp) => {
+                const expMonth = exp.date.getMonth();
+                const day = exp.date.getDate();
+
+                if (expMonth === adjustedPrevMonth) {
+                    // First month portion
+                    if (!month1Totals[day]) month1Totals[day] = 0;
+                    month1Totals[day] += exp.amount;
+                } else {
+                    // Second month portion
+                    if (!month2Totals[day]) month2Totals[day] = 0;
+                    month2Totals[day] += exp.amount;
+                }
+            });
+
+            // Build arrays for first month (cycleStart to end of month)
+            dailyDataMonth1 = [];
+            for (let d = cycleStart; d <= daysInPrevMonth; d++) {
+                dailyDataMonth1.push({ day: d, amount: month1Totals[d] || 0 });
+            }
+
+            // Build arrays for second month (1 to cycleStart-1)
+            dailyDataMonth2 = [];
+            for (let d = 1; d <= daysInCurrMonth; d++) {
+                dailyDataMonth2.push({ day: d, amount: month2Totals[d] || 0 });
+            }
+
+            // Legacy dailyData for backward compatibility
+            dailyData = [...dailyDataMonth1, ...dailyDataMonth2];
+        }
 
         // Recent transactions (last 5)
         const recentTransactions = currentMonthExpenses.slice(0, 5);
@@ -165,6 +221,11 @@ export async function GET(request: NextRequest) {
             percentageChange,
             categoryBreakdown: sortedCategories,
             dailyData,
+            dailyDataMonth1,
+            dailyDataMonth2,
+            month1Label,
+            month2Label,
+            cycleStart,
             recentTransactions,
             totalIncome,
             balance: totalIncome - currentTotal,

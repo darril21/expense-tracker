@@ -39,6 +39,11 @@ interface DashboardStats {
     percentageChange: number;
     categoryBreakdown: CategoryBreakdown[];
     dailyData: { day: number; amount: number }[];
+    dailyDataMonth1: { day: number; amount: number }[] | null;
+    dailyDataMonth2: { day: number; amount: number }[] | null;
+    month1Label: string;
+    month2Label: string;
+    cycleStart: number;
     recentTransactions: {
         id: string;
         amount: number;
@@ -278,7 +283,89 @@ export default function DashboardPage() {
                     <div className="card-header">
                         <h2 className="card-title">Pengeluaran Harian</h2>
                     </div>
-                    {stats?.dailyData && stats.dailyData.some((d) => d.amount > 0) ? (
+                    {stats?.cycleStart && stats.cycleStart !== 1 && stats.dailyDataMonth1 && stats.dailyDataMonth2 ? (
+                        /* Two charts for custom billing cycle */
+                        <div>
+                            {/* Month 1 Chart */}
+                            <div style={{ marginBottom: 24 }}>
+                                <div style={{
+                                    fontSize: "0.875rem",
+                                    color: "var(--primary)",
+                                    marginBottom: 8,
+                                    fontWeight: 600
+                                }}>
+                                    📅 {stats.month1Label}
+                                </div>
+                                {stats.dailyDataMonth1.some((d) => d.amount > 0) ? (
+                                    <ResponsiveContainer width="100%" height={200}>
+                                        <BarChart data={stats.dailyDataMonth1}>
+                                            <CartesianGrid strokeDasharray="3 3" stroke="#333" />
+                                            <XAxis dataKey="day" stroke="#737373" tick={{ fontSize: 11 }} />
+                                            <YAxis
+                                                stroke="#737373"
+                                                tick={{ fontSize: 11 }}
+                                                tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
+                                            />
+                                            <Tooltip
+                                                contentStyle={{
+                                                    background: "#1a1a1a",
+                                                    border: "1px solid #333",
+                                                    borderRadius: 8,
+                                                }}
+                                                formatter={(value) => [formatCurrency(value as number), "Pengeluaran"]}
+                                                labelFormatter={(label) => `Tanggal ${label}`}
+                                            />
+                                            <Bar dataKey="amount" fill="#22c55e" radius={[4, 4, 0, 0]} />
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                ) : (
+                                    <div style={{ textAlign: "center", padding: "20px 0", color: "var(--muted)" }}>
+                                        Belum ada pengeluaran
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Month 2 Chart */}
+                            <div>
+                                <div style={{
+                                    fontSize: "0.875rem",
+                                    color: "var(--primary)",
+                                    marginBottom: 8,
+                                    fontWeight: 600
+                                }}>
+                                    📅 {stats.month2Label}
+                                </div>
+                                {stats.dailyDataMonth2.some((d) => d.amount > 0) ? (
+                                    <ResponsiveContainer width="100%" height={200}>
+                                        <BarChart data={stats.dailyDataMonth2}>
+                                            <CartesianGrid strokeDasharray="3 3" stroke="#333" />
+                                            <XAxis dataKey="day" stroke="#737373" tick={{ fontSize: 11 }} />
+                                            <YAxis
+                                                stroke="#737373"
+                                                tick={{ fontSize: 11 }}
+                                                tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
+                                            />
+                                            <Tooltip
+                                                contentStyle={{
+                                                    background: "#1a1a1a",
+                                                    border: "1px solid #333",
+                                                    borderRadius: 8,
+                                                }}
+                                                formatter={(value) => [formatCurrency(value as number), "Pengeluaran"]}
+                                                labelFormatter={(label) => `Tanggal ${label}`}
+                                            />
+                                            <Bar dataKey="amount" fill="#6366f1" radius={[4, 4, 0, 0]} />
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                ) : (
+                                    <div style={{ textAlign: "center", padding: "20px 0", color: "var(--muted)" }}>
+                                        Belum ada pengeluaran
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    ) : stats?.dailyData && stats.dailyData.some((d) => d.amount > 0) ? (
+                        /* Single chart for standard calendar month */
                         <ResponsiveContainer width="100%" height={300}>
                             <BarChart data={stats.dailyData}>
                                 <CartesianGrid strokeDasharray="3 3" stroke="#333" />
