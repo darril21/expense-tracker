@@ -229,7 +229,7 @@ export async function GET(request: NextRequest) {
             recentTransactions,
             totalIncome,
             balance: totalIncome - currentTotal,
-            recentIncomes: currentMonthIncomes.slice(0, 5),
+            recentIncomes: currentMonthIncomes,
             month,
             year,
         });

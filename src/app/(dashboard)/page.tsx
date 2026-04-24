@@ -443,11 +443,11 @@ export default function DashboardPage() {
             {stats?.recentIncomes && stats.recentIncomes.length > 0 && (
                 <div className="card" style={{ marginBottom: 20 }}>
                     <div className="card-header">
-                        <h2 className="card-title">💰 Pemasukan Terbaru</h2>
+                        <h2 className="card-title">💰 Riwayat Pemasukan ({stats.recentIncomes.length})</h2>
                     </div>
-                    <div className="table-container">
+                    <div className="table-container" style={{ maxHeight: 400, overflowY: "auto" }}>
                         <table className="table">
-                            <thead>
+                            <thead style={{ position: "sticky", top: 0, zIndex: 1, background: "var(--card-bg, #1a1a2e)" }}>
                                 <tr>
                                     <th>Tanggal</th>
                                     <th>Tipe</th>
